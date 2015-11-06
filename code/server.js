@@ -71,9 +71,9 @@ passport.deserializeUser(function(obj, done) {
 
 //this sets up the authentication used in part 2. Fill in the prompted areas after you set up your google project
 passport.use(new StrategyGoogle({
-    clientID: "YOUR_CLIENT_ID",
-    clientSecret: "YOUR_CLIENT_SECRET",
-    callbackURL: "http://nodejs.YOUR_NET_ID.it210.it.et.byu.edu/auth/google/return"
+    clientID: "52664755272-3bq0d2q22oht5ss84mtbnbhc5uq8je46.apps.googleusercontent.com",
+    clientSecret: "MXZgPA8luup05CxuD9v1hj8Q",
+    callbackURL: "http://nodejs.carsondm.it210.it.et.byu.edu/auth/google/return"
   },
    function(iss, sub, profile, accessToken, refreshToken, done) {
     process.nextTick(function () {

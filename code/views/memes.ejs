@@ -43,15 +43,18 @@
 				<div class='nav-collapse collapse'>
 					<ul class='nav'>
 						<li id='home-nav-item'><a href='/memes'>Memes</a></li>
-						<li id='home-nav-item'><a href='/login'>Login</a></li>
+						<!--only show this line to login if no one is logged in-->
+						<% if (user == 1){%><li id='home-nav-item'><a href='/login'>Login</a></li><%}%>
+						<% if (user != 1){%><li id='home-nav-item'><a href='/logout'>Logout</a></li><%}%>
 
 					</ul>
 					<ul class='nav pull-right'>
 						<li><a href='#'>Welcome
-
 <!--You will want to add code here (PART 2) to allow you to display a custom message if a user is logged in (Welcome Bob!) or a generic message if no one is logged into the site (Welcome Guest User).  Similarly,
 if a user is not logged in you want a login button to display and no logout button, but if a user is logged in then you want to display a logout button.  You may need to break in and out of Node JS several times using "< % % >" and "< %= % >"-->
-
+										<!--only show this welcome guest if no one is logged in-->
+										<% if (user == 1){%> Guest<%}%>
+										<% if (user != 1){%><%=user.displayName%><%}%>
 						</a></li>
 					</ul>
 				</div>
@@ -61,7 +64,7 @@ if a user is not logged in you want a login button to display and no logout butt
 	
 	<div class="row-fluid">
 		<!-- If you uncomment the following line it will display a time stamp for the last time that the page was refreshed by the websockets, there is a line that needs to be uncommented near the end of the file as well.  This might be useful for part 2 of this lab to make sure the socket is working -->
-		<!-- <time></time>  -->
+		<time></time>
 		<div id="wrapper">
 			<div id="columns">
 				<!-- The following line breaks out of html into NodeJS to process data passed to the view
@@ -96,7 +99,7 @@ if a user is not logged in you want a login button to display and no logout butt
 
 	<script>
 		// creating a new websocket
-		var socket = io.connect('http://1.1.1.1:1337');//change this IP address to the IP address of your server.
+		var socket = io.connect('192.168.12.38:1337');//change this IP address to the IP address of your server.
 	  	
 		// on notification (socket updated) add the new meme(s) inside the '#columns' div. This notification is coming from server.js
 
@@ -109,8 +112,48 @@ if a user is not logged in you want a login button to display and no logout butt
 			You need to figure out how to use that data to update the page when a new image is added to the database and the file structure.  
 			We recommend using the Jquery ".append()" function.  You will need a couple of for loops and if statements with the append() function.*/
 	  		
+	  		//array of images currently on the page
+	  		var items = $("#columns div");
+	  		var exists = 0;
+	  		var userNameNum = 0;
+
+	  		//run for how many images are in the database
+	  		for (var i = 0; i < imagesListLength; i++)
+	  		{
+	  			//run for how many images are on the page
+	  			for (var j = 0; j < items.length; j++)
+	  			{
+	  				//comparing id's between database and the page divs
+	  				if("block" + image[i].imageId == items[j].id)
+	  				{
+	  					exists = 1;
+	  				}
+	  			}
+	  			//database doesn't match something on the page
+	  			if(exists == 0)
+	  			{
+	  				//runs through users in the database
+	  				for (var k = 0; k < user.length; k++)
+	  				{
+	  					//comparing userId of image and userId of user
+	  					if (image[i].userId == user[k].userId)
+	  					{
+	  						//saves matching user number
+	  						userNameNum = user.userId;
+	  					}
+	  				}
+
+	  				//this is the part that appends & concatenates the HTML stuff
+	  				$('#columns').append('<div class="pin back-image" id="block' + image[i].imageId +'"><img src="' + image[i].imagePath +'"  alt="' + image[i].altText +'"><button class="btn btn-primary btn-mini float-left" id="' + image[i].imageId + '" type="button" onClick="updateLikeCount(' + image[i].imageId + ', this.id);">Likes: ' + image[i].numLikes + '</button><br><a class="btn btn-info btn-mini" style="margin-top:5px;" href="/memes/' + user[i].userName + '/view">More by ' + user[i].userName +'</a></div>');
+	  			}
+
+	  				exists = 0;
+	  				userNameNum = 0;
+
+	  		}
+
 			//If you what the '<time></time>' div to update with a time stamp you will need to uncomment both that line and the following line.
-	  		//$('time').html('Last Update:' + data.time);
+	  		$('time').html('Last Update:' + data.time);
 	  	});
 	
 
@@ -118,7 +161,10 @@ if a user is not logged in you want a login button to display and no logout butt
 		// This function is called when the like button is clicked (see above where like button is added).
 	  	function updateLikeCount(imageId, buttonId){
 		
-  			//You will need to use socket.emit to send information to the server (server.js).  Use the function name (also called 'tag') 'button_click'.  
+
+  			//You will need to use socket.emit to send information to the server (server.js).  Use the function name (also called 'tag') 'button_click'.
+  			socket.emit('button_click', imageId, buttonId);
+
 	  	}
 
 
@@ -126,7 +172,9 @@ if a user is not logged in you want a login button to display and no logout butt
 		// This function runs at the return of updateLikeCount (above) after it runs through the server.js file
 	  	socket.on('return_click', function (newImage, buttonId){
 		
-	  		//You will need to add jquery here to update the text for the button containing the like count. 
+	  		//You will need to add jquery here to update the text for the button containing the like count.
+    		document.getElementById(buttonId).innerHTML = "Likes: " + newImage.numLikes;
+
 	  	});
 
 	  </script>
